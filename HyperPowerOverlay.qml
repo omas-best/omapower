@@ -31,7 +31,8 @@ Item {
     var available = Math.max(0, settings.maximumActiveParticles - activeParticles)
     var localX = event.x - layer.screen.x
     var localY = event.y - layer.screen.y
-    var count = layer.particleField.addBurst(localX, localY, settings, available, Color.accent)
+    var themePalette = root.service && Array.isArray(root.service.themePalette) ? root.service.themePalette : []
+    var count = layer.particleField.addBurst(localX, localY, settings, available, Color.accent, themePalette)
     if (count <= 0) return
     activeParticles += count
     if (settings.shakeEnabled && settings.shakeStrength > 0) layer.shake(settings)

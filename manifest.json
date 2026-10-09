@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.nivekcode.omapower",
   "name": "OmaPower",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "author": "nivekcode",
   "license": "MIT",
   "description": "Typing particles that follow the terminal cursor on Omarchy",

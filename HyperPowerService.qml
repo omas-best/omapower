@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
+import "ThemePalette.js" as ThemePalette
 
 Item {
   id: root
@@ -18,7 +19,11 @@ Item {
   readonly property string pluginId: manifest && manifest.id ? String(manifest.id) : "io.github.nivekcode.omapower"
   readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"
   readonly property string socketPath: runtimeDir + "/omapower.sock"
+  readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
+  readonly property string currentThemePath: stateHome + "/omarchy/current/theme"
+  readonly property string themeNamePath: stateHome + "/omarchy/current/theme.name"
   property var settings: model.sanitized({})
+  property var themePalette: []
   property bool effectEnabled: true
   property bool socketReady: false
   property int acceptedBursts: 0
@@ -54,6 +59,14 @@ Item {
     effectEnabled = settings.particlesEnabled
     settingsReloaded()
     return "ok"
+  }
+
+  function loadThemePalette(raw) {
+    themePalette = ThemePalette.fromOmarchyColors(raw)
+  }
+
+  function reloadThemePalette() {
+    themeColorsFile.reload()
   }
 
   function terminalIdentity(toplevel, ipc) {
@@ -498,6 +511,25 @@ Item {
       if (pending)
         root.requestBurst(pending.source, pending.requireTerminal, pending.overridePosition, pending.retryCount)
     }
+  }
+
+  FileView {
+    id: themeNameFile
+    path: root.themeNamePath
+    watchChanges: true
+    printErrors: false
+    onLoaded: root.reloadThemePalette()
+    onFileChanged: reload()
+    onLoadFailed: root.loadThemePalette("")
+  }
+
+  FileView {
+    id: themeColorsFile
+    path: root.currentThemePath + "/colors.toml"
+    watchChanges: false
+    printErrors: false
+    onLoaded: root.loadThemePalette(text())
+    onLoadFailed: root.loadThemePalette("")
   }
 
   // Readline reports the post-insert cursor before Foot paints it. A short

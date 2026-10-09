@@ -32,10 +32,12 @@ Canvas {
     return t * t * (3 - 2 * t)
   }
 
-  function particleColor(settings, accentColor, index, count) {
-    if (settings.particleColorMode === "omarchy") {
-      var paletteIndex = (paletteCursor + index) % omarchyPalette.length
-      return omarchyPalette[paletteIndex]
+  function particleColor(settings, accentColor, themePalette, index, count) {
+    if (settings.particleColorMode === "theme" || settings.particleColorMode === "omarchy") {
+      var palette = settings.particleColorMode === "theme" && Array.isArray(themePalette) && themePalette.length > 0
+        ? themePalette : omarchyPalette
+      var paletteIndex = (paletteCursor + index) % palette.length
+      return palette[paletteIndex]
     }
     if (settings.particleColorMode === "rainbow") {
       var hue = (index / Math.max(1, count) + Math.random() * 0.12) % 1
@@ -45,7 +47,7 @@ Canvas {
     return String(accentColor)
   }
 
-  function addBurst(x, y, settings, capacity, accentColor) {
+  function addBurst(x, y, settings, capacity, accentColor, themePalette) {
     var requested = Math.max(1, Math.round(settings.particleCount))
     var count = Math.min(requested, Math.max(0, capacity))
     if (count <= 0) return 0
@@ -67,7 +69,7 @@ Canvas {
         life: settings.particleLifetime * (0.94 + Math.random() * 0.12),
         size: settings.particleSize * (0.88 + Math.random() * 0.24),
         opacity: settings.opacity,
-        color: particleColor(settings, accentColor, i, count),
+        color: particleColor(settings, accentColor, themePalette, i, count),
         trail: settings.particleTrail
       })
     }
@@ -81,14 +83,17 @@ Canvas {
         y: y,
         age: 0,
         life: 72,
-        color: particleColor(settings, accentColor, count, count + 1),
+        color: particleColor(settings, accentColor, themePalette, count, count + 1),
         opacity: settings.opacity
       })
       flashes = flashNext
       activeFlashCount = flashNext.length
     }
-    if (settings.particleColorMode === "omarchy")
-      paletteCursor = (paletteCursor + count) % omarchyPalette.length
+    if (settings.particleColorMode === "theme" || settings.particleColorMode === "omarchy") {
+      var activePalette = settings.particleColorMode === "theme" && Array.isArray(themePalette) && themePalette.length > 0
+        ? themePalette : omarchyPalette
+      paletteCursor = (paletteCursor + count) % activePalette.length
+    }
 
     requestPaint()
     return count

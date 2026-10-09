@@ -6,8 +6,7 @@
 
 OmaPower brings satisfying particle bursts to terminals on Omarchy.
 Every printable key launches a compact spray of pixels from the live block
-cursor. The default colors move through the white, cyan, blue, indigo, and
-purple shades of the Omarchy logo.
+cursor. By default, particle colors follow the active Omarchy theme.
 
 The effect runs as a click-through Wayland overlay inside `omarchy-shell`. With
 the native Bash and Foot integration, particles follow the real terminal cell
@@ -18,10 +17,10 @@ clock stops when no particles are active.
 <p align="center">
   <img src="assets/omapower-preview.gif" alt="OmaPower particles following the Foot terminal cursor while typing" width="900">
 </p>
-<p align="center"><sub>Recorded in Foot with OmaPower's default motion and Omarchy color palette.</sub></p>
+<p align="center"><sub>Recorded in Foot with OmaPower's default motion and built-in Omarchy colors.</sub></p>
 
 The plugin targets Omarchy 4.0.1's schema version 1 plugin API. The current
-plugin release is 0.6.6.
+plugin release is 0.7.0.
 
 ## Highlights
 
@@ -29,7 +28,7 @@ plugin release is 0.6.6.
 - Prompt-aware cleanup, so a finished command cannot leave particles on the
   wrong terminal row
 - Adjustable particle count, size, spread, speed, gravity, lifetime, and fade
-- Full Omarchy logo, accent, rainbow, and fixed color modes
+- Active theme, Omarchy logo, accent, rainbow, and fixed color modes
 - Foot, Ghostty, Kitty, and Alacritty focus filtering through Quickshell's
   native Hyprland integration
 - One click-through overlay per monitor, using Wayland logical coordinates
@@ -99,6 +98,7 @@ The bundled helper is optional. Run it from the repository:
 ./scripts/omapowerctl toggle
 ./scripts/omapowerctl status
 ./scripts/omapowerctl set particleCount 7
+./scripts/omapowerctl set particleColorMode theme
 ./scripts/omapowerctl set particleColorMode rainbow
 ```
 
@@ -250,7 +250,7 @@ Settings persist in the plugin's entry in `~/.config/omarchy/shell.json`. The
 | `shakeEnabled` | `false` | boolean |
 | `shakeStrength` | `2` | 0 to 12 logical px |
 | `shakeDuration` | `90` | 20 to 400 ms |
-| `particleColorMode` | `omarchy` | `omarchy`, `accent`, `rainbow`, `fixed` |
+| `particleColorMode` | `theme` | `theme`, `omarchy`, `accent`, `rainbow`, `fixed` |
 | `customParticleColor` | `#ffffff` | six or eight digit hex color |
 | `inputMode` | `activity` | `activity`, `socket`, `both` |
 | `activityResetDelay` | `10` | 10 to 250 ms |
@@ -267,6 +267,33 @@ Example terminal list:
 ./scripts/omapowerctl set terminalIdentifiers '["foot","my-terminal"]'
 ```
 
+### Particle colors
+
+The default `theme` mode reads the terminal ANSI palette from Omarchy's staged
+active theme. OmaPower picks the normal or bright variant of each ANSI hue
+based on its contrast with the theme background and skips colors that would be
+hard to see. If the active theme has no valid palette, particles use the built-in
+Omarchy logo colors instead.
+
+OmaPower watches Omarchy's current-theme state file. A change made with
+`omarchy theme set`, the theme switcher, or another supported Omarchy theme
+command reloads the palette for new particles without restarting the shell or
+interrupting particles already on screen.
+
+To use one of the previous color modes:
+
+```bash
+./scripts/omapowerctl set particleColorMode omarchy
+./scripts/omapowerctl set particleColorMode accent
+./scripts/omapowerctl set particleColorMode rainbow
+./scripts/omapowerctl set particleColorMode fixed
+./scripts/omapowerctl set customParticleColor '#ff66cc'
+```
+
+`omarchy` uses OmaPower's original white-to-purple logo palette. `accent` uses
+the theme accent color, `rainbow` generates colors per burst, and `fixed` uses
+`customParticleColor`.
+
 Shake affects the particle field, not the terminal window. Moving a tiled
 Hyprland client for every key can disturb layout and leave geometry behind after
 an interrupted animation, so OmaPower does not do that.
@@ -279,7 +306,8 @@ frame-rate-independent velocity, drag, gravity, exponential alpha decay, and a
 final eased fade. Particle cores stay square and align to physical pixels so
 the effect remains sharp at small sizes. Trails and the cursor flash remain
 available as options but are off by default. Successive bursts rotate through
-every white, cyan, blue, indigo, and purple shade sampled from the Omarchy logo.
+the selected palette. Particles already on screen keep their original color if
+the theme changes while they are moving.
 
 All active particles on a monitor share one vsync-driven framebuffer canvas.
 The overlay stays mapped while OmaPower is enabled, which avoids layer-surface
